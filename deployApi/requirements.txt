@@ -1,0 +1,6 @@
+uvicorn
+pickle5
+pydantic
+fastapi
+scikit-learn==0.20.4
+pandas==0.24.2
