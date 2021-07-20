@@ -1,26 +1,38 @@
+from kfp.v2.dsl import (Artifact,
+                        Dataset,
+                        Input,
+                        Model,
+                        Output,
+                        Metrics,
+                        component)
+
+
 @component(
     packages_to_install = [
         "pandas",
         "scikit-learn==0.20.4",
-        "pickle"
+        "google-cloud-storage",
+        "gcsfs",
+        "fsspec"
     ],
 )
-
-import pickle
-import os
-
-import pandas as pd
-from sklearn.linear_model import SGDClassifier
-from sklearn.pipeline import Pipeline
-
 
 def train_model(
     dataset_train: Input[Dataset],
     dataset_validation: Input[Dataset],
-    alpha,
-    max_iter,
-    model_artifact: Output[Model]
+    alpha: float,
+    max_iter: int,
+    model_artifact: Output[Model],
+    root_path:str
 ):
+  import pickle
+  import os
+
+  import pandas as pd
+  from sklearn.linear_model import SGDClassifier
+  from sklearn.pipeline import Pipeline
+
+  from google.cloud import storage
 
   df_train = pd.read_csv(dataset_train.path)
   df_validation = pd.read_csv(dataset_validation.path)
@@ -40,12 +52,9 @@ def train_model(
 
   model_filename = 'model.pkl'
   local_path = model_filename 
+  os.system(print(str(model_artifact.path)))
   with open(local_path , 'wb') as model_file:
     pickle.dump(pipeline, model_file)
-  # Upload model artifact to Cloud Storage
-    model_directory = os.environ['AIP_MODEL_DIR']
-    storage_path = os.path.join(model_directory, model_filename)
-    os.system('gsutil cp {} {}'.format(local_path,storage_path)
-
-  
-
+    blob = storage.blob.Blob.from_string('{}/models/{}'.format(root_path,model_filename), client=storage.Client())
+    blob.upload_from_filename(model_filename)
+    

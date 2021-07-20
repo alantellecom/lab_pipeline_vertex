@@ -1,20 +1,35 @@
+from kfp.v2.dsl import (Artifact,
+                        Dataset,
+                        Input,
+                        Model,
+                        Output,
+                        Metrics,
+                        component)
+
 @component(
     packages_to_install = [
         "pandas",
-        "sklearn==0.20.4"
+        "scikit-learn==0.20.4",
+        "google-cloud-storage",
+        "gcsfs",
+        "fsspec"
+
     ],
 )
 
-
-def preproc_split_dataset(dataset_train: Output[Dataset],dataset_validation: Output[Dataset], dataset_test: Output[Dataset]):
+def preproc_split_dataset(dataset_train: Output[Dataset],dataset_validation: Output[Dataset], dataset_test: Output[Dataset],root_path:str):
 
   import pandas as pd
   from sklearn.model_selection import train_test_split
   from sklearn import preprocessing
   import os
-
-  os.system('curl -o iris.txt  https://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data')  
-  os.system('gsutil cp  iris.txt  {}'.format(root_path))
+  from google.cloud import storage
+    
+  file_name = 'iris.txt'
+  
+  os.system('curl -o {}  https://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data'.format(file_name))  
+  blob = storage.blob.Blob.from_string('{}/{}'.format(root_path,file_name), client=storage.Client())
+  blob.upload_from_filename(file_name)
     
     
   columns = ['sepal_length','sepal_width','petal_length','petal_width','class']

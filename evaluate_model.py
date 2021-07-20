@@ -1,16 +1,22 @@
-
+from kfp.v2.dsl import (Artifact,
+                        Dataset,
+                        Input,
+                        Model,
+                        Output,
+                        Metrics,
+                        component)
 @component(
     packages_to_install = [
         "pandas",
-        "scikit-learn==0.20.4",
-        "pickle"
+        "scikit-learn==0.20.4"
     ],
 )
 
 def evaluate_model(
     test_set: Input[Dataset],
-    model: Input[Model],
-    smetrics: Output[Metrics]
+    model_artifact: Input[Model],
+    smetrics: Output[Metrics],
+    root_path:str
 ):
 
   import pickle
@@ -25,11 +31,9 @@ def evaluate_model(
 
   model_filename = 'model.pkl'
   local_path = model_filename 
-  model_directory = os.environ['AIP_MODEL_DIR']
-  storage_path = os.path.join(model_directory, model_filename)
-  os.system('gsutil cp {} {}'.format(storage_path,local_path)
+  model_artifact_path = '{}/models/{}'.format(root_path,model_filename)
 
-  with open(model_filename, 'rb') as model_file:
+  with open(model_artifact_path, 'rb') as model_file:
     model = pickle.load(model_file)
 
   y_hat = model.predict(X_test)
