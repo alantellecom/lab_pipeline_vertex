@@ -18,8 +18,7 @@ from kfp.v2.dsl import (Artifact,
 def evaluate_model(
     test_set: Input[Dataset],
     model_artifact: Input[Model],
-    smetrics: Output[Metrics],
-    root_path:str
+    smetrics: Output[Metrics]
 ):
 
   import pickle
@@ -33,10 +32,12 @@ def evaluate_model(
   X_test = df_test.drop('classEncoder', axis=1)
   y_test = df_test['classEncoder']
 
-  model_filename = 'model.pkl'
-  local_path = model_filename 
-  model_artifact_path = '{}/models/{}'.format(root_path,model_filename)
-  blob = storage.blob.Blob.from_string(model_artifact_path, client=storage.Client())
+  model_filename = 'model.pkl' 
+  models_artifact_path = model_artifact.path
+  models_artifact_path=models_artifact_path.replace('/gcs/','gs://')
+  model_path = '{}/{}'.format(models_artifact_path,model_filename)
+  
+  blob = storage.blob.Blob.from_string(model_path, client=storage.Client())
   blob.download_to_filename(model_filename)
   
   with open(model_filename, 'rb') as model_file:

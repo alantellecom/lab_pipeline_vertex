@@ -22,8 +22,7 @@ def train_model(
     dataset_validation: Input[Dataset],
     alpha: float,
     max_iter: int,
-    model_artifact: Output[Model],
-    root_path:str
+    model_artifact: Output[Model]
 ):
   import pickle
   import os
@@ -49,11 +48,16 @@ def train_model(
   pipeline.fit(X_train, y_train)
   model_artifact.metadata["train_score"]=float(pipeline.score(X_train, y_train))
   model_artifact.metadata["framework"] = "sklearn"
-
+        
   model_filename = 'model.pkl'
   local_path = model_filename 
+  
   with open(local_path , 'wb') as model_file:
     pickle.dump(pipeline, model_file)
-    blob = storage.blob.Blob.from_string('{}/models/{}'.format(root_path,model_filename), client=storage.Client())
-    blob.upload_from_filename(model_filename)
+
+  models_path = model_artifact.path
+  models_path=models_path.replace('/gcs/','gs://')
+  
+  blob = storage.blob.Blob.from_string('{}/{}'.format(models_path,model_filename), client=storage.Client())
+  blob.upload_from_filename(model_filename)
     

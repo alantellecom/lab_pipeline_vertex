@@ -28,13 +28,13 @@ def preproc_split_dataset(dataset_train: Output[Dataset],dataset_validation: Out
   file_name = 'iris.txt'
   
   os.system('curl -o {}  https://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data'.format(file_name))  
-  blob = storage.blob.Blob.from_string('{}/{}'.format(root_path,file_name), client=storage.Client())
+  blob = storage.blob.Blob.from_string('{}/dataset/{}'.format(root_path,file_name), client=storage.Client())
   blob.upload_from_filename(file_name)
     
     
   columns = ['sepal_length','sepal_width','petal_length','petal_width','class']
 
-  dfIris = pd.read_csv('{}/iris.txt'.format(root_path), names=columns)
+  dfIris = pd.read_csv('{}/dataset/iris.txt'.format(root_path), names=columns)
   le = preprocessing.LabelEncoder()
   dfIris['classEncoder'] = le.fit_transform(dfIris['class'])
     
@@ -46,6 +46,15 @@ def preproc_split_dataset(dataset_train: Output[Dataset],dataset_validation: Out
   df_val = pd.concat([X_val,y_val],axis=1)
   df_test = pd.concat([X_test,y_test],axis=1)
   
-  df_train.to_csv(dataset_train.path, index=False)
-  df_val.to_csv(dataset_validation.path, index=False)
-  df_test.to_csv(dataset_test.path , index=False)
+  dataset_train_path = dataset_train.path
+  dataset_train_path = dataset_train_path.replace('/gcs/','gs://')
+    
+  dataset_validation_path = dataset_validation.path
+  dataset_validation_path = dataset_validation_path.replace('/gcs/','gs://')
+
+  dataset_test_path = dataset_test.path
+  dataset_test_path = dataset_test_path.replace('/gcs/','gs://')
+    
+  df_train.to_csv(dataset_train_path, index=False)
+  df_val.to_csv(dataset_validation_path, index=False)
+  df_test.to_csv(dataset_test_path , index=False)
