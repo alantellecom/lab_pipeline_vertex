@@ -52,7 +52,6 @@ def train_model(
 
   model_filename = 'model.pkl'
   local_path = model_filename 
-  os.system(print(str(model_artifact.path)))
   with open(local_path , 'wb') as model_file:
     pickle.dump(pipeline, model_file)
     blob = storage.blob.Blob.from_string('{}/models/{}'.format(root_path,model_filename), client=storage.Client())
