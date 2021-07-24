@@ -310,7 +310,7 @@
       }
     },
     "schemaVersion": "2.0.0",
-    "sdkVersion": "kfp-1.6.5"
+    "sdkVersion": "kfp-1.6.6"
   },
   "runtimeConfig": {
     "gcsOutputDirectory": "gs://kubeflow-lab-v2",
