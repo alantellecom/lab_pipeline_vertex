@@ -20,8 +20,7 @@ from kfp.v2.dsl import (Artifact,
 def train_model(
     dataset_train: Input[Dataset],
     dataset_validation: Input[Dataset],
-    alpha: float,
-    max_iter: int,
+    best_hp_values: Input[Model],
     model_artifact: Output[Model]
 ):
   import pickle
@@ -40,11 +39,12 @@ def train_model(
 
   pipeline = Pipeline([('classifier', SGDClassifier(loss='log'))])
 
-  print('Starting training: alpha={}, max_iter={}'.format(alpha, max_iter))
+  print('Starting training: alpha={}, max_iter={}'.format(best_hp_values.metadata["best_learning_rate"], best_hp_values.metadata["best_iteration"]))
   X_train = df_train.drop('classEncoder', axis=1)
   y_train = df_train['classEncoder']
 
-  pipeline.set_params(classifier__alpha=alpha, classifier__max_iter=max_iter)
+  pipeline.set_params(classifier__alpha=best_hp_values.metadata["best_learning_rate"], 
+                      classifier__max_iter=best_hp_values.metadata["best_iteration"])
   pipeline.fit(X_train, y_train)
   model_artifact.metadata["train_score"]=float(pipeline.score(X_train, y_train))
   model_artifact.metadata["framework"] = "sklearn"

@@ -72,6 +72,10 @@ def hyperparameter_tuning_job(
            # "args": [],
        # },
     }
+    
+    #base_output_directory = {
+    #    "outputUriPrefix": root_path
+    #}
 
     # hyperparameter_tuning_job
     hyperparameter_tuning_job = {
@@ -83,10 +87,11 @@ def hyperparameter_tuning_job(
             "parameters": [parameter_learning_rate,parameter_iterations],
             "algorithm": aiplatform.gapic.StudySpec.Algorithm.RANDOM_SEARCH,
         },
-        "trial_job_spec": {"worker_pool_specs": [worker_pool_spec]},
+        "trial_job_spec": {"worker_pool_specs": [worker_pool_spec]}, #, "baseOutputDirectory": base_output_directory},
     }
     parent = f"projects/{project}/locations/{location}"
-    response = client.create_hyperparameter_tuning_job(parent=parent, hyperparameter_tuning_job=hyperparameter_tuning_job)
+    response = client.create_hyperparameter_tuning_job(parent=parent,    
+                                hyperparameter_tuning_job=hyperparameter_tuning_job)
     hyperparameter_tuning_job_id = response.name.split('/')[-1]
     
     name = client.hyperparameter_tuning_job_path(
@@ -108,7 +113,8 @@ def hyperparameter_tuning_job(
         exp_dic[x.id]=x.final_measurement.metrics[0].value
         
     best_exp_id = max(exp_dic, key=exp_dic.get)
-   
+    
+    best_hp_values.metadata["best_score"] = exp_values_list[int(best_exp_id)-1].final_measurement.metrics[0].value
     best_hp_values.metadata["best_iteration"] = exp_values_list[int(best_exp_id)-1].parameters[0].value
     best_hp_values.metadata["best_learning_rate"] = exp_values_list[int(best_exp_id)-1].parameters[1].value
     
